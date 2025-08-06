@@ -1,6 +1,5 @@
 'use client';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
+
 import Footer from './Footer';
 import UnifiedNavbar from './UnifiedNavbar';
 
