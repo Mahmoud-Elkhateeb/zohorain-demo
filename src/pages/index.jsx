@@ -4,7 +4,7 @@ export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
 
   return (
-    <div className="p-4 h-[300vh]">
+    <div className="">
       <h1 className="text-2xl font-bold">Dashboard Overview</h1>
       <p className="mt-2">Welcome back, {user?.displayName || user?.email || 'Admin'}!</p>
       

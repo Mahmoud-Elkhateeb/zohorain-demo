@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '@/features/authSlice';
@@ -16,11 +15,8 @@ import {
   MenuItem,
   Typography,
   Box,
-  Divider,
   Drawer,
   List,
-  ListItem,
-  ListItemIcon,
   ListItemText,
   Collapse,
   useTheme,
@@ -30,7 +26,6 @@ import {
   Search as SearchIcon,
   Mail as MailIcon,
   Notifications as NotificationsIcon,
-  ArrowDropDown as ArrowDropDownIcon,
   Menu as MenuIcon,
   Home,
   ShoppingCart,
@@ -42,10 +37,9 @@ import {
   LocalOffer,
   ExpandMore,
   ChevronRight,
-  Close as CloseIcon,
+  ChevronLeft,
 } from '@mui/icons-material';
 import { styled } from '@mui/system';
-import clsx from 'clsx';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -136,23 +130,49 @@ const navigationItems = [
   },
 ];
 
-export default function UnifiedNavbar({ children }) {
+export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarCollapsedProp, toggleSidebarCollapsed }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsedInternal, setSidebarCollapsedInternal] = useState(false);
+
+  // Use controlled sidebarCollapsed if provided
+  const sidebarCollapsed = typeof sidebarCollapsedProp === 'boolean' ? sidebarCollapsedProp : sidebarCollapsedInternal;
+
+  const setSidebarCollapsed = (value) => {
+    if (typeof toggleSidebarCollapsed === 'function') {
+      toggleSidebarCollapsed();
+    } else {
+      setSidebarCollapsedInternal(value);
+    }
+  };
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [langAnchor, setLangAnchor] = useState(null);
   const [openDropdown, setOpenDropdown] = useState({});
+  const [currentLanguage, setCurrentLanguage] = useState('en');
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));
 
   const { user } = useSelector((state) => state.auth) || {};
   const profileOpen = Boolean(profileAnchor);
   const langOpen = Boolean(langAnchor);
 
+  // Handle client-side language state
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem('language') || 'en';
+      setCurrentLanguage(savedLanguage);
+    }
+  }, []);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   const handleProfileClick = (event) => setProfileAnchor(event.currentTarget);
@@ -184,21 +204,48 @@ export default function UnifiedNavbar({ children }) {
     }
   };
 
+  const drawerWidth = sidebarCollapsed ? 80 : 280;
+  const collapsedDrawerWidth = 80;
+
   const drawer = (
-    <Box sx={{ width: 280, bgcolor: '#334257', height: '100%', color: '#E9F3FF', position: 'fixed', top: 0, left: 0, overflowY: 'auto', overflowX: 'hidden' }}>
-      <Box sx={{ p: 1, borderBottom: '1px solid #465468', position: 'fixed', zIndex: 1000, backgroundColor: '#E9F3FF', width: '280px' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+    <Box sx={{ 
+      width: sidebarCollapsed ? collapsedDrawerWidth : 280, 
+      bgcolor: '#334257', 
+      height: '100vh', 
+      color: '#E9F3FF', 
+      display: 'flex',
+      flexDirection: 'column',
+      transition: 'width 0.3s ease'
+    }}>
+      <Box sx={{ 
+        p: 1, 
+        borderBottom: '1px solid #465468', 
+        bgcolor: '#E9F3FF',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+        transition: 'all 0.3s ease',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }}>
+        {!sidebarCollapsed && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <img src="/assets/logos/2025-07-22-687f61523c255.png" alt="Logo" style={{ width: 45, borderRadius: 4 }} />
+            <Typography variant="h6" sx={{ color: '#012D5E', fontWeight: 'bold', fontSize: '0.95rem' }}>
+              Zohorain
+            </Typography>
+          </Box>
+        )}
+        {sidebarCollapsed && (
           <img src="/assets/logos/2025-07-22-687f61523c255.png" alt="Logo" style={{ width: 45, borderRadius: 4 }} />
-          <Typography variant="h6" sx={{ color: '#012D5E', fontWeight: 'bold', fontSize: '1rem' }}>
-            Zohorain
-          </Typography>
-        </Box>
+        )}
       </Box>
 
-      <Box sx={{ p: 2, mt: 8 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }} className="sidebar-scrollbar sidebar-scroll-fade touch-scroll">
         {navigationItems.map((section, sectionIndex) => (
           <Box key={sectionIndex} sx={{ mb: 3 }}>
-            {section.headline && (
+            {section.headline && !sidebarCollapsed && (
               <Typography variant="caption" sx={{
                 color: '#9AA5B7',
                 fontWeight: 'bold',
@@ -225,7 +272,7 @@ export default function UnifiedNavbar({ children }) {
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
+                          justifyContent: sidebarCollapsed ? 'center' : 'space-between',
                           p: 1,
                           borderRadius: 1,
                           cursor: 'pointer',
@@ -233,39 +280,51 @@ export default function UnifiedNavbar({ children }) {
                           ...(isActive && { bgcolor: '#465468' })
                         }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: sidebarCollapsed ? 0 : 2,
+                          justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                          width: '100%'
+                        }}>
                           {item.icon}
-                          <Typography variant="body2">{item.title}</Typography>
+                          {!sidebarCollapsed && (
+                            <Typography variant="body2">{item.title}</Typography>
+                          )}
                         </Box>
-                        {openDropdown[key] ? <ExpandMore /> : <ChevronRight />}
+                        {!sidebarCollapsed && (
+                          openDropdown[key] ? <ExpandMore /> : <ChevronRight />
+                        )}
                       </Box>
 
-                      <Collapse in={openDropdown[key]}>
-                        <Box sx={{ pl: 4, mt: 1 }}>
-                          {item.sublinks.map((sublink, subIndex) => (
-                            <Box
-                              key={subIndex}
-                              onClick={() => handleNavigation(sublink.href)}
-                              sx={{
-                                p: 0.5,
-                                borderRadius: 1,
-                                cursor: 'pointer',
-                                '&:hover': { bgcolor: '#465468' },
-                                ...(pathname === sublink.href && { bgcolor: '#465468' })
-                              }}
-                            >
-                              <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                                {sublink.title}
-                                {sublink.count && (
-                                  <Box component="span" sx={{ ml: 1, color: '#EF853A' }}>
-                                    ({sublink.count})
-                                  </Box>
-                                )}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
-                      </Collapse>
+                      {!sidebarCollapsed && (
+                        <Collapse in={openDropdown[key]}>
+                          <Box sx={{ pl: 4, mt: 1 }}>
+                            {item.sublinks.map((sublink, subIndex) => (
+                              <Box
+                                key={subIndex}
+                                onClick={() => handleNavigation(sublink.href)}
+                                sx={{
+                                  p: 0.5,
+                                  borderRadius: 1,
+                                  cursor: 'pointer',
+                                  '&:hover': { bgcolor: '#465468' },
+                                  ...(pathname === sublink.href && { bgcolor: '#465468' })
+                                }}
+                              >
+                                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                                  {sublink.title}
+                                  {sublink.count && (
+                                    <Box component="span" sx={{ ml: 1, color: '#EF853A' }}>
+                                      ({sublink.count})
+                                    </Box>
+                                  )}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </Collapse>
+                      )}
                     </Box>
                   ) : (
                     <Box
@@ -273,16 +332,19 @@ export default function UnifiedNavbar({ children }) {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 2,
+                        gap: sidebarCollapsed ? 0 : 2,
                         p: 1,
                         borderRadius: 1,
                         cursor: 'pointer',
+                        justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
                         '&:hover': { bgcolor: '#465468' },
                         ...(isActive && { bgcolor: '#465468' })
                       }}
                     >
                       {item.icon}
-                      <Typography variant="body2">{item.title}</Typography>
+                      {!sidebarCollapsed && (
+                        <Typography variant="body2">{item.title}</Typography>
+                      )}
                     </Box>
                   )}
                 </Box>
@@ -291,97 +353,177 @@ export default function UnifiedNavbar({ children }) {
           </Box>
         ))}
       </Box>
+
+      {/* Collapse/Expand Button */}
+      {!isMobile && (
+        <Box sx={{ 
+          p: 2, 
+          borderTop: '1px solid #465468',
+          display: 'flex',
+          justifyContent: sidebarCollapsed ? 'center' : 'flex-end'
+        }}>
+          <IconButton
+            onClick={handleSidebarToggle}
+            sx={{
+              color: '#E9F3FF',
+              '&:hover': { bgcolor: '#465468' }
+            }}
+          >
+            {sidebarCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          </IconButton>
+        </Box>
+      )}
     </Box>
   );
 
   return (
-    <Box sx={{ display: 'flex' }} className="fixed ">
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { md: `calc(100% - ${isMobile ? 0 : 280}px)` },
-          ml: { md: isMobile ? 0 : '280px' },
-          zIndex: theme.zIndex.drawer + 1,
-          bgcolor: 'background.paper',
-          color: 'text.primary',
-          boxShadow: 1,
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+    <Box sx={{ display: 'flex' }}>
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <Box
+          sx={{
+            width: sidebarCollapsed ? collapsedDrawerWidth : 280,
+            flexShrink: 0,
+            transition: 'width 0.3s ease',
+          }}
+        >
+          {drawer}
+        </Box>
+      )}
+
+      {/* Main Content Area */}
+      <Box sx={{ flexGrow: 1 }}>
+        {/* Mobile Navbar */}
+        {isMobile && (
+          <AppBar
+            position="fixed"
+            sx={{
+              zIndex: theme.zIndex.drawer + 1,
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              boxShadow: 1,
+              height: 64, // Ensure consistent height
+            }}
           >
-            <MenuIcon />
-          </IconButton>
+            <Toolbar sx={{ minHeight: 64, px: 2 }}>
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
 
-          <Search sx={{ flexGrow: 1 }}>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase placeholder="Search..." inputProps={{ 'aria-label': 'search' }} />
-          </Search>
+              <Search sx={{ flexGrow: 1 }}>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase placeholder="Search..." inputProps={{ 'aria-label': 'search' }} />
+              </Search>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end', flexGrow: 1 }}>
-            {/* Language Selector */}
-            <Box
-              sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-              onClick={handleLangClick}
-            >
-              <Typography variant="body2">En</Typography>
-              <ArrowDropDownIcon />
-            </Box>
-            <Menu
-              anchorEl={langAnchor}
-              open={langOpen}
-              onClose={handleClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <MenuItem onClick={handleClose}>En</MenuItem>
-              <MenuItem onClick={handleClose}>Ar</MenuItem>
-            </Menu>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {/* Language Toggle Button for Mobile */}
+                <IconButton 
+                  size="large" 
+                  color="inherit"
+                  onClick={() => {
+                    // Toggle between 'ar' and 'en'
+                    const newLang = currentLanguage === 'ar' ? 'en' : 'ar';
+                    setCurrentLanguage(newLang);
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('language', newLang);
+                      window.location.reload();
+                    }
+                  }}
+                  sx={{ 
+                    '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
+                    borderRadius: '8px',
+                    padding: '8px'
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>
+                    {currentLanguage === 'ar' ? 'EN' : 'AR'}
+                  </Typography>
+                </IconButton>
+                
+                <IconButton size="large" color="inherit">
+                  <MailIcon />
+                </IconButton>
+                <IconButton size="large" color="inherit">
+                  <Badge variant="dot" color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </IconButton>
+                <Avatar alt={user?.name || 'User'} src="" sx={{ width: 32, height: 32 }} />
+              </Box>
+            </Toolbar>
+          </AppBar>
+        )}
 
-            {/* Messages */}
-            <IconButton size="large" color="inherit">
-              <MailIcon />
-            </IconButton>
+        {/* Desktop Navbar */}
+        {!isMobile && (
+          <AppBar
+            position="fixed"
+            sx={{
+              zIndex: theme.zIndex.drawer + 1,
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              boxShadow: 1,
+              ml: sidebarCollapsed ? `${collapsedDrawerWidth}px` : `${drawerWidth}px`,
+              width: sidebarCollapsed ? `calc(100% - ${collapsedDrawerWidth}px)` : `calc(100% - ${drawerWidth}px)`,
+              transition: 'all 0.3s ease',
+            }}
+          >
+            <Toolbar>
+              <Search sx={{ flexGrow: 1 }}>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase placeholder="Search..." inputProps={{ 'aria-label': 'search' }} />
+              </Search>
 
-            {/* Notifications */}
-            <IconButton size="large" color="inherit">
-              <Badge variant="dot" color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end', flexGrow: 1 }}>
+                {/* Language Toggle Button */}
+                <IconButton 
+                  size="large" 
+                  color="inherit"
+                  onClick={() => {
+                    // Toggle between 'ar' and 'en'
+                    const newLang = currentLanguage === 'ar' ? 'en' : 'ar';
+                    setCurrentLanguage(newLang);
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('language', newLang);
+                      window.location.reload();
+                    }
+                  }}
+                  sx={{ 
+                    '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
+                    borderRadius: '8px',
+                    padding: '8px'
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>
+                    {currentLanguage === 'ar' ? 'EN' : 'AR'}
+                  </Typography>
+                </IconButton>
+                
+                <IconButton size="large" color="inherit">
+                  <MailIcon />
+                </IconButton>
+                <IconButton size="large" color="inherit">
+                  <Badge variant="dot" color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </IconButton>
+                <Avatar alt={user?.name || 'User'} src="" sx={{ width: 32, height: 32 }} />
+              </Box>
+            </Toolbar>
+          </AppBar>
+        )}
 
-            {/* Profile */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={handleProfileClick}>
-              <Avatar alt={user?.name || 'User'} src="" sx={{ width: 32, height: 32 }} />
-              <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                {user?.name || 'User'}
-              </Typography>
-              <ArrowDropDownIcon />
-            </Box>
-            <Menu
-              anchorEl={profileAnchor}
-              open={profileOpen}
-              onClose={handleClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <MenuItem onClick={handleClose}>Settings</MenuItem>
-              <MenuItem onClick={handleSignOut}>Sign out</MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      <Box
-        component="nav"
-        sx={{ width: { md: 280 }, flexShrink: { md: 0 } }}
-        aria-label="mailbox folders"
-      >
+        {/* Mobile Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -391,26 +533,30 @@ export default function UnifiedNavbar({ children }) {
           }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 280 },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: 280,
+              height: '100vh'
+            },
           }}
         >
           {drawer}
         </Drawer>
-        <Drawer
-          variant="permanent"
+
+        {/* Page Content */}
+        <Box
+          component="main"
           sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 280 },
+            flexGrow: 1,
+            mt: isMobile ? 8 : 0,
+            width: !isMobile ? (sidebarCollapsed ? `calc(100% - ${collapsedDrawerWidth}px)` : `calc(100% - ${drawerWidth}px)`) : '100%',
+            transition: 'all 0.3s ease',
+            minHeight: '100vh',
           }}
-          open
         >
-          {drawer}
-        </Drawer>
+          {children}
+        </Box>
       </Box>
-
-
     </Box>
   );
 }
-
-
