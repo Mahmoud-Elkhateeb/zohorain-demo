@@ -16,11 +16,10 @@ import {
   Typography,
   Box,
   Drawer,
-  List,
-  ListItemText,
   Collapse,
   useTheme,
   useMediaQuery,
+  Popover,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -116,7 +115,22 @@ const navigationItems = [
   {
     headline: 'FOOD MANAGEMENT',
     items: [
-      { title: 'Foods', icon: <Fastfood />, href: '/food-management/foods/list' },
+      { title: 'Foods', icon: <Fastfood />, sublinks: [
+          { title: 'All', href: '/order-management/regular-orders/all', count: 13 },
+          { title: 'Pending', href: '/order-management/regular-orders/pending', count: 0 },
+          { title: 'Confirmed', href: '/order-management/regular-orders/confirmed', count: 2 },
+          { title: 'Accepted', href: '/order-management/regular-orders/accepted', count: 0 },
+          { title: 'Cooking', href: '/order-management/regular-orders/cooking', count: 1 },
+          { title: 'Ready For Delivery', href: '/order-management/regular-orders/ready', count: 4 },
+          { title: 'Food On The Way', href: '/order-management/regular-orders/on-the-way', count: 0 },
+          { title: 'Delivered', href: '/order-management/regular-orders/delivered', count: 8 },
+          { title: 'Dine In', href: '/order-management/regular-orders/dine-in', count: 0 },
+          { title: 'Refunded', href: '/order-management/regular-orders/refunded', count: 0 },
+          { title: 'Refund Requested', href: '/order-management/regular-orders/refund-requested', count: 2 },
+          { title: 'Scheduled', href: '/order-management/regular-orders/scheduled', count: 0 },
+          { title: 'Payment Failed', href: '/order-management/regular-orders/payment-failed', count: 0 },
+          { title: 'Canceled', href: '/order-management/regular-orders/canceled', count: 0 },
+        ], },
       { title: 'Categories', icon: <Category />, href: '/food-management/categories/category' },
       { title: 'Addons', icon: <Add />, href: '/food-management/addons' },
       { title: 'Reviews', icon: <RateReview />, href: '/food-management/reviews' },
@@ -133,6 +147,7 @@ const navigationItems = [
 export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarCollapsedProp, toggleSidebarCollapsed }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsedInternal, setSidebarCollapsedInternal] = useState(false);
+  const [popover, setPopover] = useState({ anchor: null, content: null, key: null });
 
   // Use controlled sidebarCollapsed if provided
   const sidebarCollapsed = typeof sidebarCollapsedProp === 'boolean' ? sidebarCollapsedProp : sidebarCollapsedInternal;
@@ -190,6 +205,20 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
     handleClose();
   };
 
+  const handlePopoverClick = (event, sublinks, key) => {
+    if (sidebarCollapsed) {
+      if (popover.key === key) {
+        setPopover({ anchor: null, content: null, key: null });
+      } else {
+        setPopover({
+          anchor: event.currentTarget,
+          content: sublinks,
+          key: key,
+        });
+      }
+    }
+  };
+
   const toggleDropdown = (key) => {
     setOpenDropdown(prev => ({
       ...prev,
@@ -208,18 +237,18 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
   const collapsedDrawerWidth = 80;
 
   const drawer = (
-    <Box sx={{ 
-      width: sidebarCollapsed ? collapsedDrawerWidth : 280, 
-      bgcolor: '#334257', 
-      height: '100vh', 
-      color: '#E9F3FF', 
+    <Box sx={{
+      width: sidebarCollapsed ? collapsedDrawerWidth : 280,
+      bgcolor: '#334257',
+      height: '100vh',
+      color: '#E9F3FF',
       display: 'flex',
       flexDirection: 'column',
       transition: 'width 0.3s ease'
     }}>
-      <Box sx={{ 
-        p: 1, 
-        borderBottom: '1px solid #465468', 
+      <Box sx={{
+        p: 1,
+        borderBottom: '1px solid #465468',
         bgcolor: '#E9F3FF',
         display: 'flex',
         alignItems: 'center',
@@ -268,7 +297,13 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                   {hasSublinks ? (
                     <Box>
                       <Box
-                        onClick={() => toggleDropdown(key)}
+                        onClick={(e) => {
+                          if (sidebarCollapsed) {
+                            handlePopoverClick(e, item.sublinks, key);
+                          } else {
+                            toggleDropdown(key);
+                          }
+                        }}
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
@@ -280,9 +315,9 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                           ...(isActive && { bgcolor: '#465468' })
                         }}
                       >
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
                           gap: sidebarCollapsed ? 0 : 2,
                           justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
                           width: '100%'
@@ -312,14 +347,55 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                                   ...(pathname === sublink.href && { bgcolor: '#465468' })
                                 }}
                               >
-                                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                                  {sublink.title}
-                                  {sublink.count && (
-                                    <Box component="span" sx={{ ml: 1, color: '#EF853A' }}>
-                                      ({sublink.count})
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                                    {sublink.title}
+                                  </Typography>
+                                  {sublink.count !== undefined && (
+                                    <Box
+                                      component="span"
+                                      sx={{
+                                        minWidth: 20,
+                                        height: 20,
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 'bold',
+                                        color: '#fff',
+                                        backgroundColor: (() => {
+                                          if (sublink.count === 0) {
+                                            // White background with red border for zero counts like "Refunded"
+                                            if (['Refunded', 'Refund Requested'].includes(sublink.title)) {
+                                              return '#fff';
+                                            }
+                                            // Gray background for other zero counts
+                                            return '#334257';
+                                          }
+                                          // Blue for "All", "Cooking", "Ready For Delivery", "Delivered"
+                                          if (['All', 'Cooking', 'Ready For Delivery', 'Delivered'].includes(sublink.title)) {
+                                            return '#1E88E5'; // Blue
+                                          }
+                                          // Green for "Pending", "Confirmed", "Accepted", "Dine In", "Scheduled", "Payment Failed", "Canceled"
+                                          if (['Pending', 'Confirmed', 'Accepted', 'Dine In', 'Scheduled', 'Payment Failed', 'Canceled'].includes(sublink.title)) {
+                                            return '#388E3C'; // Green
+                                          }
+                                          // Red for "Refunded", "Refund Requested"
+                                          if (['Refunded', 'Refund Requested'].includes(sublink.title)) {
+                                            return '#D32F2F'; // Red
+                                          }
+                                          // Default blue
+                                          return '#1E88E5';
+                                        })(),
+                                        border: sublink.count === 0 && ['Refunded', 'Refund Requested'].includes(sublink.title) ? '1.5px solid #D32F2F' : 'none',
+                                        userSelect: 'none',
+                                      }}
+                                    >
+                                      {sublink.count}
                                     </Box>
                                   )}
-                                </Typography>
+                                </Box>
                               </Box>
                             ))}
                           </Box>
@@ -356,8 +432,8 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
 
       {/* Collapse/Expand Button */}
       {!isMobile && (
-        <Box sx={{ 
-          p: 2, 
+        <Box sx={{
+          p: 2,
           borderTop: '1px solid #465468',
           display: 'flex',
           justifyContent: sidebarCollapsed ? 'center' : 'flex-end'
@@ -425,8 +501,8 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 {/* Language Toggle Button for Mobile */}
-                <IconButton 
-                  size="large" 
+                <IconButton
+                  size="large"
                   color="inherit"
                   onClick={() => {
                     // Toggle between 'ar' and 'en'
@@ -437,7 +513,7 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                       window.location.reload();
                     }
                   }}
-                  sx={{ 
+                  sx={{
                     '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
                     borderRadius: '8px',
                     padding: '8px'
@@ -447,7 +523,7 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                     {currentLanguage === 'ar' ? 'EN' : 'AR'}
                   </Typography>
                 </IconButton>
-                
+
                 <IconButton size="large" color="inherit">
                   <MailIcon />
                 </IconButton>
@@ -456,7 +532,76 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
-                <Avatar alt={user?.name || 'User'} src="" sx={{ width: 32, height: 32 }} />
+
+                {/* Profile Dropdown for Mobile */}
+                <IconButton
+                  size="large"
+                  color="inherit"
+                  onClick={handleProfileClick}
+                  sx={{ p: 0 }}
+                >
+                  <Avatar
+                    alt={user?.name || 'User'}
+                    src={user?.avatar || ""}
+                    sx={{ width: 32, height: 32 }}
+                  />
+                </IconButton>
+
+                <Menu
+                  anchorEl={profileAnchor}
+                  open={profileOpen}
+                  onClose={handleClose}
+                  onClick={handleClose}
+                  PaperProps={{
+                    elevation: 0,
+                    sx: {
+                      overflow: 'visible',
+                      filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                      mt: 1.5,
+                      '& .MuiAvatar-root': {
+                        width: 32,
+                        height: 32,
+                        ml: -0.5,
+                        mr: 1,
+                      },
+                      '&:before': {
+                        content: '""',
+                        display: 'block',
+                        position: 'absolute',
+                        top: 0,
+                        right: 14,
+                        width: 10,
+                        height: 10,
+                        bgcolor: 'background.paper',
+                        transform: 'translateY(-50%) rotate(45deg)',
+                        zIndex: 0,
+                      },
+                    },
+                  }}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <MenuItem onClick={handleClose}>
+                    <Avatar alt={user?.name || 'User'} src={user?.avatar || ""} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                        {user?.name || 'User'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {user?.email || 'user@example.com'}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Profile</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Settings</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleSignOut}>
+                    <Typography variant="body2" color="error">Logout</Typography>
+                  </MenuItem>
+                </Menu>
               </Box>
             </Toolbar>
           </AppBar>
@@ -486,8 +631,8 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end', flexGrow: 1 }}>
                 {/* Language Toggle Button */}
-                <IconButton 
-                  size="large" 
+                <IconButton
+                  size="large"
                   color="inherit"
                   onClick={() => {
                     // Toggle between 'ar' and 'en'
@@ -498,7 +643,7 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                       window.location.reload();
                     }
                   }}
-                  sx={{ 
+                  sx={{
                     '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
                     borderRadius: '8px',
                     padding: '8px'
@@ -508,7 +653,7 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                     {currentLanguage === 'ar' ? 'EN' : 'AR'}
                   </Typography>
                 </IconButton>
-                
+
                 <IconButton size="large" color="inherit">
                   <MailIcon />
                 </IconButton>
@@ -517,7 +662,76 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
-                <Avatar alt={user?.name || 'User'} src="" sx={{ width: 32, height: 32 }} />
+
+                {/* Profile Dropdown */}
+                <IconButton
+                  size="large"
+                  color="inherit"
+                  onClick={handleProfileClick}
+                  sx={{ p: 0 }}
+                >
+                  <Avatar
+                    alt={user?.name || 'User'}
+                    src={user?.avatar || ""}
+                    sx={{ width: 32, height: 32 }}
+                  />
+                </IconButton>
+
+                <Menu
+                  anchorEl={profileAnchor}
+                  open={profileOpen}
+                  onClose={handleClose}
+                  onClick={handleClose}
+                  PaperProps={{
+                    elevation: 0,
+                    sx: {
+                      overflow: 'visible',
+                      filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                      mt: 1.5,
+                      '& .MuiAvatar-root': {
+                        width: 32,
+                        height: 32,
+                        ml: -0.5,
+                        mr: 1,
+                      },
+                      '&:before': {
+                        content: '""',
+                        display: 'block',
+                        position: 'absolute',
+                        top: 0,
+                        right: 14,
+                        width: 10,
+                        height: 10,
+                        bgcolor: 'background.paper',
+                        transform: 'translateY(-50%) rotate(45deg)',
+                        zIndex: 0,
+                      },
+                    },
+                  }}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <MenuItem onClick={handleClose}>
+                    <Avatar alt={user?.name || 'User'} src={user?.avatar || ""} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                        {user?.name || 'User'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {user?.email || 'user@example.com'}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Profile</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleClose}>
+                    <Typography variant="body2">Settings</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={handleSignOut}>
+                    <Typography variant="body2" color="error">Logout</Typography>
+                  </MenuItem>
+                </Menu>
               </Box>
             </Toolbar>
           </AppBar>
@@ -533,8 +747,8 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
           }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
               width: 280,
               height: '100vh'
             },
@@ -557,6 +771,95 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
           {children}
         </Box>
       </Box>
+      <Popover
+        open={Boolean(popover.anchor)}
+        anchorEl={popover.anchor}
+        onClose={() => setPopover({ anchor: null, content: null, key: null })}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#3E5169',
+            color: '#E9F3FF',
+            padding: '8px',
+            minWidth: '220px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+            transition: 'opacity 250ms ease-in-out, transform 250ms ease-in-out',
+            opacity: Boolean(popover.anchor) ? 1 : 0,
+            transform: Boolean(popover.anchor) ? 'translateX(0)' : 'translateX(-10px)',
+          },
+        }}
+        disableRestoreFocus
+      >
+        {popover.content?.map((sublink, subIndex) => (
+          <Box
+            key={subIndex}
+            onClick={() => {
+              handleNavigation(sublink.href);
+              setPopover({ anchor: null, content: null, key: null });
+            }}
+            sx={{
+              p: 1,
+              borderRadius: 1,
+              cursor: 'pointer',
+              '&:hover': { bgcolor: '#465468' },
+              ...(pathname === sublink.href && { bgcolor: '#465468' }),
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+              {sublink.title}
+            </Typography>
+            {sublink.count !== undefined && (
+              <Box
+                component="span"
+                sx={{
+                  minWidth: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  color: '#fff',
+                  backgroundColor: (() => {
+                    if (sublink.count === 0) {
+                      if (['Refunded', 'Refund Requested'].includes(sublink.title)) {
+                        return '#fff';
+                      }
+                      return '#334257';
+                    }
+                    if (['All', 'Cooking', 'Ready For Delivery', 'Delivered'].includes(sublink.title)) {
+                      return '#1E88E5';
+                    }
+                    if (['Pending', 'Confirmed', 'Accepted', 'Dine In', 'Scheduled', 'Payment Failed', 'Canceled'].includes(sublink.title)) {
+                      return '#388E3C';
+                    }
+                    if (['Refunded', 'Refund Requested'].includes(sublink.title)) {
+                      return '#D32F2F';
+                    }
+                    return '#1E88E5';
+                  })(),
+                  border: sublink.count === 0 && ['Refunded', 'Refund Requested'].includes(sublink.title) ? '1.5px solid #D32F2F' : 'none',
+                  userSelect: 'none',
+                }}
+              >
+                {sublink.count}
+              </Box>
+            )}
+          </Box>
+        ))}
+      </Popover>
     </Box>
   );
 }
