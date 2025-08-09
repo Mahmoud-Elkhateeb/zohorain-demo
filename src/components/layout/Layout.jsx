@@ -24,7 +24,7 @@ export default function Layout({ children }) {
         
         {/* Main content area - Takes remaining width */}
         <div className="flex-1 flex flex-col mt-17 p-1" key={sidebarCollapsed}>
-          <main className="flex-1 overflow-y-auto p-4">
+          <main className="flex-1 overflow-y-auto p-4 ">
             {children}
           </main>
           <Footer />
@@ -32,9 +32,9 @@ export default function Layout({ children }) {
       </div>
 
       {/* Mobile Layout - Only visible on small screens */}
-      <div className="md:hidden flex flex-col h-screen bg-[#F9FAFB]">
+      <div className="md:hidden flex flex-col h-screen  bg-[#F9FAFB]">
         {/* Mobile Navbar - Fixed at top */}
-        <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="fixed top-0 left-0 right-0 ">
           <UnifiedNavbar 
             isMobile={true} 
             sidebarCollapsed={sidebarCollapsed}
@@ -43,11 +43,11 @@ export default function Layout({ children }) {
         </div>
         
         {/* Sidebar overlay for mobile */}
-        <div className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out ${
+        <div className={`fixed inset-0 transition-transform duration-300 ease-in-out z-50 ${
           sidebarCollapsed ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={toggleSidebarCollapsed} />
-          <div className="absolute left-0 top-0 h-full w-72 bg-[#F9FAFB] shadow-lg">
+          <div className="absolute left-0 top-0 h-full w-72 bg-[#F9FAFB] shadow-lg z-50">
             <UnifiedNavbar 
               isMobile={true} 
               sidebarCollapsed={sidebarCollapsed}
@@ -58,7 +58,7 @@ export default function Layout({ children }) {
 
         {/* Main content area - Account for fixed navbar */}
         <div className="flex-1  mt-16">
-          <main className="p-4">
+          <main className="p-4 z-10">
             {children}
           </main>
           <Footer />

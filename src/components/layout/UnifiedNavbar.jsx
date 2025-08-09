@@ -595,7 +595,10 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                   <MenuItem onClick={handleClose}>
                     <Typography variant="body2">Profile</Typography>
                   </MenuItem>
-                  <MenuItem onClick={handleClose}>
+                  <MenuItem onClick={() => {
+                    handleClose();
+                    router.push('/profileuser/settings');
+                  }}>
                     <Typography variant="body2">Settings</Typography>
                   </MenuItem>
                   <MenuItem onClick={handleSignOut}>
@@ -725,7 +728,10 @@ export default function UnifiedNavbar({ children, sidebarCollapsed: sidebarColla
                   <MenuItem onClick={handleClose}>
                     <Typography variant="body2">Profile</Typography>
                   </MenuItem>
-                  <MenuItem onClick={handleClose}>
+                  <MenuItem onClick={() => {
+                    handleClose();
+                    router.push('/profileuser/settings');
+                  }}>
                     <Typography variant="body2">Settings</Typography>
                   </MenuItem>
                   <MenuItem onClick={handleSignOut}>
