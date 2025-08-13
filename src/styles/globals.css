@@ -1,0 +1,271 @@
+@import "tailwindcss";
+
+/* Custom Scrollbar Styles */
+
+:root {
+    --scrollbar-thumb: #c1c1c1;
+    --scrollbar-track: #f1f1f1;
+    --scrollbar-width: 2px;
+    --scrollbar-border-radius: 4px;
+}
+
+
+/* Custom Scrollbar for Webkit Browsers */
+
+::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--scrollbar-border-radius);
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #787878;
+}
+
+
+/* Custom Scrollbar for Firefox */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+
+/* Smooth Scrolling */
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+/* Custom Scroll Classes */
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+
+/* Sidebar Specific Scrollbar */
+
+.sidebar-scrollbar {
+    --scrollbar-thumb: #465468;
+    --scrollbar-track: #334257;
+    --scrollbar-width: 6px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #5a6b7d;
+}
+
+
+/* Main Content Scrollbar */
+
+.content-scrollbar {
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-track: #f8fafc;
+    --scrollbar-width: 8px;
+}
+
+.content-scrollbar::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+.content-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+.content-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--scrollbar-border-radius);
+}
+
+.content-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* Scroll Progress Indicator */
+
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    transform-origin: 0%;
+    z-index: 20;
+    transition: transform 0.1s ease-out;
+}
+
+
+/* Scroll Fade Effect */
+
+.scroll-fade {
+    position: relative;
+}
+
+.scroll-fade::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(249, 250, 251, 1), rgba(249, 250, 251, 0));
+    pointer-events: none;
+    z-index: 1;
+}
+
+.scroll-fade::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to top, rgba(249, 250, 251, 1), rgba(249, 250, 251, 0));
+    pointer-events: none;
+    z-index: 1;
+}
+
+
+/* Sidebar Scroll Fade */
+
+.sidebar-scroll-fade {
+    position: relative;
+}
+
+.sidebar-scroll-fade::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(51, 66, 87, 1), rgba(51, 66, 87, 0));
+    pointer-events: none;
+    z-index: 1;
+}
+
+.sidebar-scroll-fade::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(to top, rgba(51, 66, 87, 1), rgba(51, 66, 87, 0));
+    pointer-events: none;
+    z-index: 1;
+}
+
+
+/* Mobile Optimized Scroll */
+
+@media (max-width: 768px) {
+     :root {
+        --scrollbar-width: 4px;
+    }
+    .sidebar-scrollbar {
+        --scrollbar-width: 4px;
+    }
+    .content-scrollbar {
+        --scrollbar-width: 4px;
+    }
+}
+
+
+/* Touch-friendly Scroll Areas */
+
+.touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+
+/* Scroll Animation */
+
+@keyframes scroll-indicator {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+.scroll-indicator {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    animation: scroll-indicator 2s ease-in-out infinite;
+}
+
+.scroll-indicator::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid #cbd5e1;
+}
